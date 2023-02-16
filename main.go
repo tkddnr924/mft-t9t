@@ -13,12 +13,16 @@ import (
 func main() {
 	volume := "\\\\.\\C:"
 
+	fmt.Println("START PROGRAM")
+
+	fmt.Println("[*] Open Volume", volume)
 	in, err := os.Open(volume)
 	if err != nil {
 		fmt.Println("[1]", err)
 	}
 	defer in.Close()
 
+	fmt.Println("[*] Read Boot Sector")
 	bootSectorData := make([]byte, 512)
 	_, err = io.ReadFull(in, bootSectorData)
 	if err != nil {
@@ -26,6 +30,7 @@ func main() {
 	}
 	defer in.Close()
 
+	fmt.Println("[*] Parse Boot Sector")
 	bootSector, err := bootsect.Parse(bootSectorData)
 
 	if err != nil {
@@ -36,6 +41,7 @@ func main() {
 		fmt.Printf("[4] Unknown OemId (file system type) %q (expected %q)\n", bootSector.OemId, supportedOemId)
 	}
 
+	fmt.Println("[*] Read MFT & Seek $MFT")
 	bytesPerCluster := bootSector.BytesPerSector * bootSector.SectorsPerCluster
 	mftPosInBytes := int64(bootSector.MftClusterNumber) * int64(bytesPerCluster)
 
@@ -44,6 +50,7 @@ func main() {
 		fmt.Printf("[5] Unable to seek to MFT: %v\n", err)
 	}
 
+	fmt.Println("[*] Parse MFT DATA")
 	mftSizeInBytes := bootSector.FileRecordSegmentSizeInBytes
 	mftData := make([]byte, mftSizeInBytes)
 
@@ -52,11 +59,13 @@ func main() {
 		fmt.Printf("[6] Unable to read MFT: %v\n", err)
 	}
 
+	fmt.Println("[*] Parse MFT Record")
 	record, err := mft.ParseRecord(mftData)
 	if err != nil {
 		fmt.Printf("[7] Unable to parse MFT: %v\n", err)
 	}
 
+	fmt.Println("[*] Parse Data Attribute")
 	dataAttributes := record.FindAttributes(mft.AttributeTypeData)
 	if len(dataAttributes) == 0 {
 		fmt.Println("[8] No data attributes found")
@@ -71,6 +80,7 @@ func main() {
 		fmt.Println("[10] Data attribute is resident")
 	}
 
+	fmt.Println("[*] Parse Data Runs")
 	dataRuns, err := mft.ParseDataRuns(dataAttribute.Data)
 	if err != nil {
 		fmt.Printf("[11] Unable to parse data runs: %v\n", err)
@@ -80,6 +90,7 @@ func main() {
 		fmt.Println("[12] No data runs found")
 	}
 
+	fmt.Println("[*] Parse Data Fragments")
 	fragments := mft.DataRunsToFragments(dataRuns, bytesPerCluster)
 	totalLength := int64(0)
 
@@ -95,6 +106,7 @@ func main() {
 	}
 	defer out.Close()
 
+	fmt.Println("[*] Copy Data")
 	n, err := CollectCopy(out, fragment.NewReader(in, fragments))
 
 	if err != nil {
