@@ -15,8 +15,8 @@ RUN git clone https://github.com/tkddnr924/mft-t9t.git
 RUN cd mft-t9t
 
 # download module
-RUN go get -u github.com/t9t/gomft/mft
-RUN go get -u github.com/t9t/gomft/bootsect
+RUN go get -u github.com/tkddnr924/gomft/mft
+RUN go get -u github.com/tkddnr924/gomft/bootsect
 
 # build
 RUN go build /go/src/app/mft-t9t/main.go
