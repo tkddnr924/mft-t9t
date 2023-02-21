@@ -1,14 +1,24 @@
-FROM golang:1.19.6
+FROM golang:1.10.8
 
 ENV GOOS=windows \
-    GOARCH=amd64 \
-    CGO_ENABLED=0 \
-    GO111MODULE=auto
+    GOARCH=386 \
+    CGO_ENABLED=1 \
+    GO111MODULE=auto \
+    CC=i686-w64-mingw32-gcc
+
+# golang 1.11 이상
+# ENV GO111MODULE=auto
+# ENV GOOS=windows
+# ENV GOARCH=amd64
+# ENV CGO_ENABLED=0
 
 WORKDIR /go/src/app
 
 RUN apt-get update
 RUN apt-get upgrade -y
+
+# install mingw-w64
+RUN apt-get install -y mingw-w64
 
 # github clone
 RUN git clone https://github.com/tkddnr924/mft-t9t.git
